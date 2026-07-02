@@ -1,6 +1,10 @@
 import os
 import random
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -17,6 +21,7 @@ app.add_middleware(
 )
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+print(f"[DEBUG] ANTHROPIC_API_KEY loaded: {'YES' if ANTHROPIC_API_KEY else 'NO'}")
 
 FALLBACK_FORTUNES = [
     "오늘은 새로운 기회가 찾아올 거예요. 주변을 잘 살펴보세요.",
@@ -65,9 +70,12 @@ def fortune(req: FortuneRequest):
     if ANTHROPIC_API_KEY:
         try:
             text = generate_with_llm(req.name, req.mbti)
-        except Exception:
+            print(text)
+        except Exception as e:
             text = random.choice(FALLBACK_FORTUNES)
+            print(f'풀백 - 에러: {e}')
     else:
         text = random.choice(FALLBACK_FORTUNES)
+        print('풀백2')
 
     return FortuneResponse(name=req.name, mbti=req.mbti, fortune=text)
